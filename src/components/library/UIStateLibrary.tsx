@@ -11,6 +11,7 @@ import {
 import { CORE_UI_TEMPLATES } from '../../data/coreUiTemplates';
 import { TemplatePreview } from './TemplatePreviews';
 import { TemplateInspectModal } from './TemplateInspectModal';
+import { useAuth } from '../../hooks/useAuth';
 
 export type LibrarySection = 'motion' | 'essentials';
 
@@ -18,15 +19,14 @@ interface UIStateLibraryProps {
   section: LibrarySection;
   config: LoaderConfig;
   palette: ExtractedPalette;
-  onLaunchSplash: () => void;
 }
 
 export function UIStateLibrary({
   section,
   config,
   palette,
-  onLaunchSplash,
 }: UIStateLibraryProps) {
+  const { requireSignIn } = useAuth();
   const [category, setCategory] = useState<LibraryCategoryId>('all');
   const [query, setQuery] = useState('');
   const [inspected, setInspected] = useState<UITemplateItem | null>(null);
@@ -58,17 +58,19 @@ export function UIStateLibrary({
     });
   }, [section, category, query]);
 
-  const handleQuickCopy = async (id: string, kind: 'code' | 'prompt', text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      const token = `${id}:${kind}`;
-      setCopiedId(token);
-      window.setTimeout(() => {
-        setCopiedId((curr) => (curr === token ? null : curr));
-      }, 1700);
-    } catch {
-      // Clipboard blocked cleanly
-    }
+  const handleQuickCopy = (id: string, kind: 'code' | 'prompt', text: string) => {
+    requireSignIn('copy production TSX code & AI build prompts', async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        const token = `${id}:${kind}`;
+        setCopiedId(token);
+        window.setTimeout(() => {
+          setCopiedId((curr) => (curr === token ? null : curr));
+        }, 1700);
+      } catch {
+        // Clipboard blocked cleanly
+      }
+    });
   };
 
   return (
@@ -154,7 +156,7 @@ export function UIStateLibrary({
             return (
               <article
                 key={item.id}
-                className="rounded-2xl border border-zinc-800/90 bg-[#12141B] p-5 flex flex-col justify-between gap-4"
+                className="looma-floating-card rounded-2xl border border-zinc-800/90 p-5 flex flex-col justify-between gap-4"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 text-xs text-zinc-500">
@@ -182,7 +184,6 @@ export function UIStateLibrary({
                       templateId={item.id}
                       config={config}
                       palette={palette}
-                      onLaunchSplash={onLaunchSplash}
                     />
                   </div>
                 </div>
@@ -232,7 +233,6 @@ export function UIStateLibrary({
         config={config}
         palette={palette}
         onClose={() => setInspected(null)}
-        onLaunchSplash={onLaunchSplash}
       />
     </section>
   );

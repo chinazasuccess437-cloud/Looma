@@ -10,6 +10,7 @@ import {
   imageUrlToDataUrl,
   type ExportFormat,
 } from '../utils/codeGenerator';
+import { trackEvent } from '../utils/analytics';
 
 interface CodeExportModalProps {
   isOpen: boolean;
@@ -68,6 +69,7 @@ export function CodeExportModal({
   const copyWithFeedback = async (key: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
+      trackEvent('export_copy', { export_type: key, motion_style: config.motionStyle });
       setCopiedKey(key);
       window.setTimeout(() => {
         setCopiedKey((curr) => (curr === key ? null : curr));
@@ -78,6 +80,7 @@ export function CodeExportModal({
   };
 
   const downloadFile = (content: string, filename: string, mime: string) => {
+    trackEvent('export_download', { filename, motion_style: config.motionStyle });
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

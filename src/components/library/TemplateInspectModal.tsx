@@ -4,13 +4,13 @@ import { Check, Copy, X } from 'lucide-react';
 import type { ExtractedPalette, LoaderConfig } from '../../types/loader';
 import type { UITemplateItem } from '../../data/uiTemplates';
 import { TemplatePreview } from './TemplatePreviews';
+import { useAuth } from '../../hooks/useAuth';
 
 interface TemplateInspectModalProps {
   template: UITemplateItem | null;
   config: LoaderConfig;
   palette: ExtractedPalette;
   onClose: () => void;
-  onLaunchSplash: () => void;
 }
 
 export function TemplateInspectModal({
@@ -18,8 +18,8 @@ export function TemplateInspectModal({
   config,
   palette,
   onClose,
-  onLaunchSplash,
 }: TemplateInspectModalProps) {
+  const { requireSignIn } = useAuth();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
 
@@ -32,19 +32,21 @@ export function TemplateInspectModal({
     return () => window.removeEventListener('keydown', handleKey);
   }, [template, onClose]);
 
-  const copyText = async (text: string, which: 'code' | 'prompt') => {
-    try {
-      await navigator.clipboard.writeText(text);
-      if (which === 'code') {
-        setCopiedCode(true);
-        window.setTimeout(() => setCopiedCode(false), 1800);
-      } else {
-        setCopiedPrompt(true);
-        window.setTimeout(() => setCopiedPrompt(false), 1800);
+  const copyText = (text: string, which: 'code' | 'prompt') => {
+    requireSignIn('copy template code or AI prompt', async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        if (which === 'code') {
+          setCopiedCode(true);
+          window.setTimeout(() => setCopiedCode(false), 1800);
+        } else {
+          setCopiedPrompt(true);
+          window.setTimeout(() => setCopiedPrompt(false), 1800);
+        }
+      } catch {
+        // Ignore clipboard permission errors cleanly
       }
-    } catch {
-      // Ignore clipboard permission errors cleanly
-    }
+    });
   };
 
   return (
@@ -95,7 +97,6 @@ export function TemplateInspectModal({
                 templateId={template.id}
                 config={config}
                 palette={palette}
-                onLaunchSplash={onLaunchSplash}
               />
             </div>
 

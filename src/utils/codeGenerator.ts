@@ -1,4 +1,4 @@
-import type { ExtractedPalette, LoaderConfig } from '../types/loader';
+import { MOTION_STYLES, type ExtractedPalette, type LoaderConfig, type MotionStyleId } from '../types/loader';
 
 export type ExportFormat = 'react' | 'html';
 
@@ -59,24 +59,31 @@ function getInlineSvgMarkup(config: LoaderConfig, palette: ExtractedPalette): st
 
 function getMotionAnimateSnippet(config: LoaderConfig): string {
   const amp = config.intensity;
-  switch (config.motionStyle) {
-    case 'ribbon':
-      return `{ scale: [1, 0.28, 0.28, 1.04, 1], rotate: [0, -85, 95, -4, 0], opacity: [1, 0.08, 0.08, 1, 1] }`;
-    case 'glue':
-      return `{ scale: [0.36, 1.06, 1, 1, 0.36], rotate: [${Math.round(-160 * amp)}, 8, 0, 0, ${Math.round(140 * amp)}], opacity: [0.1, 1, 1, 1, 0.1] }`;
-    case 'cardiac':
-      return `{ scale: [1, ${(1 + 0.085 * amp).toFixed(2)}, 0.985, ${(1 + 0.055 * amp).toFixed(2)}, 1] }`;
-    case 'specular':
-      return `{ rotateY: [-6, 6, -6], rotateX: [4, -4, 4], scale: [1, 1.03, 1] }`;
-    case 'levitate':
-      return `{ y: [0, ${(-12 * amp).toFixed(0)}, 0], rotate: [-1.5, 1.5, -1.5] }`;
-    case 'elastic':
-      return `{ scaleX: [1, ${(1 + 0.11 * amp).toFixed(2)}, ${(1 - 0.08 * amp).toFixed(2)}, 1], scaleY: [1, ${(1 - 0.1 * amp).toFixed(2)}, ${(1 + 0.11 * amp).toFixed(2)}, 1] }`;
-    case 'aperture':
-      return `{ scale: [0.95, 1.03, 0.95], filter: ['blur(2.5px)', 'blur(0px)', 'blur(2.5px)'] }`;
-    case 'echo':
-      return `{ scale: [0.97, ${(1 + 0.04 * amp).toFixed(2)}, 0.97], opacity: [0.92, 1, 0.92] }`;
-  }
+  const map: Record<MotionStyleId, string> = {
+    ribbon: `{ scale: [1, 0.28, 0.28, 1.04, 1], rotate: [0, -85, 95, -4, 0], opacity: [1, 0.08, 0.08, 1, 1] }`,
+    glue: `{ scale: [0.36, 1.06, 1, 1, 0.36], rotate: [${Math.round(-160 * amp)}, 8, 0, 0, ${Math.round(140 * amp)}], opacity: [0.1, 1, 1, 1, 0.1] }`,
+    cardiac: `{ scale: [1, ${(1 + 0.085 * amp).toFixed(2)}, 0.985, ${(1 + 0.055 * amp).toFixed(2)}, 1] }`,
+    specular: `{ rotateY: [-6, 6, -6], rotateX: [4, -4, 4], scale: [1, 1.03, 1] }`,
+    levitate: `{ y: [0, ${(-12 * amp).toFixed(0)}, 0], rotate: [-1.5, 1.5, -1.5] }`,
+    elastic: `{ scaleX: [1, ${(1 + 0.11 * amp).toFixed(2)}, ${(1 - 0.08 * amp).toFixed(2)}, 1], scaleY: [1, ${(1 - 0.1 * amp).toFixed(2)}, ${(1 + 0.11 * amp).toFixed(2)}, 1] }`,
+    aperture: `{ scale: [0.95, 1.03, 0.95], filter: ['blur(2.5px)', 'blur(0px)', 'blur(2.5px)'] }`,
+    echo: `{ scale: [0.97, ${(1 + 0.04 * amp).toFixed(2)}, 0.97], opacity: [0.92, 1, 0.92] }`,
+    pendulum: `{ rotate: [${(-11 * amp).toFixed(0)}, ${(11 * amp).toFixed(0)}, ${(-11 * amp).toFixed(0)}], x: [${(-7 * amp).toFixed(0)}, ${(7 * amp).toFixed(0)}, ${(-7 * amp).toFixed(0)}] }`,
+    vortex: `{ rotate: [0, 180, 360], scale: [1, 0.84, 1] }`,
+    origami: `{ rotateY: [0, 180, 360], scale: [1, 0.92, 1] }`,
+    ripple: `{ scale: [1, ${(1 + 0.05 * amp).toFixed(2)}, 1], y: [0, ${(-4 * amp).toFixed(0)}, 0] }`,
+    neon: `{ scale: [1, ${(1 + 0.035 * amp).toFixed(2)}, 1] }`,
+    prism: `{ x: [0, ${(-2 * amp).toFixed(1)}, ${(2 * amp).toFixed(1)}, 0], scale: [1, 1.02, 0.99, 1] }`,
+    satellite: `{ scale: [1, 1.03, 1], rotate: [-1.5, 1.5, -1.5] }`,
+    gravity: `{ y: [${(-16 * amp).toFixed(0)}, ${(6 * amp).toFixed(0)}, ${(-6 * amp).toFixed(0)}, 0, ${(-16 * amp).toFixed(0)}], scaleY: [1, 0.88, 1.04, 1, 1] }`,
+    scanner: `{ scale: [1, 1.02, 1], opacity: [0.94, 1, 0.94] }`,
+    bloom: `{ scale: [0.93, ${(1 + 0.06 * amp).toFixed(2)}, 0.93], rotate: [-2, 2, -2] }`,
+    compass: `{ rotate: [0, 90, 90, 180, 180, 270, 270, 360], scale: [1, 0.96, 1, 0.96, 1, 0.96, 1, 1] }`,
+    warp: `{ scale: [0.58, 1.05, 1, 0.58], opacity: [0.22, 1, 1, 0.22], filter: ['blur(4px)', 'blur(0px)', 'blur(0px)', 'blur(4px)'] }`,
+    halo: `{ scale: [1, ${(1 + 0.035 * amp).toFixed(2)}, 1] }`,
+    drift: `{ rotateX: [-7, 7, -7], rotateY: [7, -7, 7], y: [-5, 5, -5] }`,
+  };
+  return map[config.motionStyle];
 }
 
 export function generateReactLoaderSnippet(
@@ -155,25 +162,31 @@ export function generateReactLoaderSnippet(
         </motion.div>`
       : '';
 
-  const cardiacLayer =
-    config.motionStyle === 'cardiac'
+  const haloLayer =
+    config.motionStyle === 'halo'
       ? `
-        {[0, 1].map((idx) => (
-          <motion.div
-            key={idx}
-            initial={{ scale: 0.85, opacity: 0.55 }}
-            animate={{ scale: ${(1.55 + 0.15 * amp).toFixed(2)}, opacity: 0 }}
-            transition={{ duration: ${(2.4 / config.speed).toFixed(2)}, repeat: Infinity, delay: idx * ${(0.6 / config.speed).toFixed(2)} }}
-            style={{ position: 'absolute', width: 120, height: 120, borderRadius: '${radius === '0px' ? '9999px' : radius}', border: '1.5px solid ${palette.primary}', pointerEvents: 'none' }}
-          />
-        ))}`
+        <motion.div
+          animate={{ rotate: [0, 360] }}
+          transition={{ duration: ${(2.2 / config.speed).toFixed(2)}, repeat: Infinity, ease: 'linear' }}
+          style={{
+            position: 'absolute',
+            width: 146,
+            height: 146,
+            borderRadius: '9999px',
+            background: 'conic-gradient(from 0deg, ${palette.primary}, ${palette.secondary}, transparent 65%, ${palette.primary})',
+            padding: 3,
+            WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            WebkitMaskComposite: 'xor',
+            pointerEvents: 'none',
+          }}
+        />`
       : '';
 
   const progressMarkup =
     config.progressStyle === 'bar'
       ? `
         <div style={{ marginTop: 16, width: 192, height: 6, borderRadius: 9999, backgroundColor: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
-          <motion.div animate={{ width: \`\${progress}%\` }} style={{ height: '100%', backgroundColor: '${palette.primary}', borderRadius: 9999 }} />
+          <motion.div animate={{ width: \`\${progress}%\` }} style={{ height: '100%', background: 'linear-gradient(90deg, ${palette.primary}, ${palette.secondary})', borderRadius: 9999 }} />
         </div>`
       : config.progressStyle === 'dots'
         ? `
@@ -183,7 +196,7 @@ export function generateReactLoaderSnippet(
               key={i}
               animate={{ scale: [0.75, 1.35, 0.75], opacity: [0.35, 1, 0.35] }}
               transition={{ duration: ${(1.1 / config.speed).toFixed(2)}, repeat: Infinity, delay: i * 0.18 }}
-              style={{ width: 6, height: 6, borderRadius: 9999, backgroundColor: '${palette.primary}' }}
+              style={{ width: 6, height: 6, borderRadius: 9999, backgroundColor: i % 2 === 0 ? '${palette.primary}' : '${palette.secondary}' }}
             />
           ))}
         </div>`
@@ -221,23 +234,23 @@ ${propsSignature} {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '${bg}',
-        backgroundImage: 'radial-gradient(circle at 50% 44%, ${palette.glow} 0%, transparent 64%)',
+        backgroundImage: 'radial-gradient(circle at 42% 40%, ${palette.primary}33 0%, transparent 55%), radial-gradient(circle at 58% 58%, ${palette.secondary}33 0%, transparent 62%)',
         color: '${textColor}',
       }}
     >
       <div style={{ position: 'relative', width: 210, height: 210, display: 'grid', placeItems: 'center' }}>
         <motion.div
-          animate={{ scale: [0.92, 1.2, 0.92], opacity: [0.28, 0.62, 0.28] }}
+          animate={{ scale: [0.94, 1.2, 0.94], rotate: [0, 360], opacity: [0.35, 0.7, 0.35] }}
           transition={{ duration: ${duration}, repeat: Infinity, ease: 'easeInOut' }}
           style={{
             position: 'absolute',
             inset: 12,
             borderRadius: '9999px',
-            background: 'radial-gradient(circle, ${palette.glow} 0%, transparent 70%)',
-            filter: 'blur(22px)',
+            background: 'conic-gradient(from 0deg, ${palette.primary}66, ${palette.secondary}88, rgba(255,255,255,0.28), ${palette.primary}66)',
+            filter: 'blur(24px)',
             pointerEvents: 'none',
           }}
-        />${glueLayer}${ribbonLayer}${cardiacLayer}
+        />${glueLayer}${ribbonLayer}${haloLayer}
 
         <motion.div
           animate={${getMotionAnimateSnippet(config)}}
@@ -284,9 +297,9 @@ export function generateHtmlCssSnippet(
     config.presetKind === 'ribbon-s'
       ? `<svg viewBox="0 0 120 120" width="100%" height="100%" fill="none">
           <rect width="120" height="120" rx="28" fill="#1F1F25" />
-          <path class="strand" d="M 75 34 C 75 20, 42 20, 42 38 C 42 54, 78 58, 78 78 C 78 96, 45 96, 45 82" stroke="#67E8F9" stroke-width="4.4" stroke-linecap="round" />
-          <path class="strand" d="M 68 38 C 68 27, 49 27, 49 41 C 49 53, 71 57, 71 75 C 71 89, 52 89, 52 78" stroke="#A78BFA" stroke-width="4.4" stroke-linecap="round" />
-          <path class="strand" d="M 61 42 C 61 34, 56 34, 56 44 C 56 52, 64 56, 64 72 C 64 82, 59 82, 59 74" stroke="#F472B6" stroke-width="4.4" stroke-linecap="round" />
+          <path d="M 75 34 C 75 20, 42 20, 42 38 C 42 54, 78 58, 78 78 C 78 96, 45 96, 45 82" stroke="#67E8F9" stroke-width="4.4" stroke-linecap="round" />
+          <path d="M 68 38 C 68 27, 49 27, 49 41 C 49 53, 71 57, 71 75 C 71 89, 52 89, 52 78" stroke="#A78BFA" stroke-width="4.4" stroke-linecap="round" />
+          <path d="M 61 42 C 61 34, 56 34, 56 44 C 56 52, 64 56, 64 72 C 64 82, 59 82, 59 74" stroke="#F472B6" stroke-width="4.4" stroke-linecap="round" />
         </svg>`
       : config.presetKind === 'vector'
         ? `<svg viewBox="0 0 120 120" width="100%" height="100%" fill="none">
@@ -308,7 +321,18 @@ export function generateHtmlCssSnippet(
     30%, 55% { transform: scale(0.32) rotate(-95deg); opacity: 0.12; }
     82% { transform: scale(1.04) rotate(0deg); opacity: 1; }
   }`
-        : `@keyframes alive-motion {
+        : config.motionStyle === 'pendulum'
+          ? `@keyframes alive-motion {
+    0%, 100% { transform: rotate(-10deg) translateX(-6px); }
+    50% { transform: rotate(10deg) translateX(6px); }
+  }`
+          : config.motionStyle === 'vortex' || config.motionStyle === 'compass'
+            ? `@keyframes alive-motion {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(0.9); }
+    100% { transform: rotate(360deg) scale(1); }
+  }`
+            : `@keyframes alive-motion {
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.06) translateY(-6px); }
   }`;
@@ -324,7 +348,7 @@ export function generateHtmlCssSnippet(
     min-height: 100vh;
     display: grid;
     place-items: center;
-    background: radial-gradient(circle at 50% 44%, ${palette.glow} 0%, transparent 64%), ${bg};
+    background: radial-gradient(circle at 42% 40%, ${palette.primary}33 0%, transparent 55%), radial-gradient(circle at 58% 58%, ${palette.secondary}33 0%, transparent 62%), ${bg};
     color: ${textColor};
     font-family: system-ui, -apple-system, sans-serif;
   }
@@ -345,8 +369,8 @@ export function generateHtmlCssSnippet(
     position: absolute;
     inset: 14px;
     border-radius: 9999px;
-    background: radial-gradient(circle, ${palette.glow} 0%, transparent 70%);
-    filter: blur(22px);
+    background: conic-gradient(from 0deg, ${palette.primary}66, ${palette.secondary}88, rgba(255,255,255,0.28), ${palette.primary}66);
+    filter: blur(24px);
     animation: aura-pulse ${duration}s ease-in-out infinite;
   }
   .logo-box {
@@ -363,62 +387,19 @@ export function generateHtmlCssSnippet(
     height: 100%;
     object-fit: cover;
   }
-  .glue-orbit {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    filter: url(#looma-goo);
-    animation: spin-glue ${duration}s ease-in-out infinite;
-  }
-  .glue-core {
-    width: 88px;
-    height: 88px;
-    border-radius: 9999px;
-    background: ${palette.primary};
-  }
-  .glue-drop {
-    position: absolute;
-    width: 34px;
-    height: 34px;
-    border-radius: 9999px;
-    background: ${palette.secondary};
-  }
-  .d1 { transform: translate(56px, 0); }
-  .d2 { transform: translate(-56px, 0); }
-  .d3 { transform: translate(0, 56px); }
-  .d4 { transform: translate(0, -56px); }
   .title { margin: 18px 0 4px; font-size: 18px; font-weight: 600; }
   .sub { margin: 0; font-size: 13px; opacity: 0.68; }
   @keyframes aura-pulse {
-    0%, 100% { transform: scale(0.92); opacity: 0.35; }
-    50% { transform: scale(1.18); opacity: 0.7; }
-  }
-  @keyframes spin-glue {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    0%, 100% { transform: scale(0.92) rotate(0deg); opacity: 0.35; }
+    50% { transform: scale(1.18) rotate(180deg); opacity: 0.72; }
   }
   ${animKeyframes}
 </style>
 </head>
 <body>
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <defs>
-      <filter id="looma-goo">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="7.5" result="blur" />
-        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" result="goo" />
-        <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-      </filter>
-    </defs>
-  </svg>
   <div class="loader-wrap">
     <div class="stage">
       <div class="aura"></div>
-      ${
-        config.motionStyle === 'glue'
-          ? `<div class="glue-orbit"><div class="glue-core"></div><div class="glue-drop d1"></div><div class="glue-drop d2"></div><div class="glue-drop d3"></div><div class="glue-drop d4"></div></div>`
-          : ''
-      }
       <div class="logo-box">${mediaHtml}</div>
     </div>
     <p class="title">${config.appName}</p>
@@ -448,30 +429,19 @@ export function generateBuildPrompt(
 
   const progressDesc: Record<LoaderConfig['progressStyle'], string> = {
     ring: 'a circular SVG orbital progress ring around the logo that fills smoothly in ' + palette.primary,
-    bar: 'a sleek 192px linear progress bar beneath the loading message filled with ' + palette.primary,
-    dots: 'three harmonic breathing dots beneath the text pulsing in ' + palette.primary,
+    bar: `a sleek 192px linear progress bar beneath the loading message filled with a ${palette.primary} to ${palette.secondary} gradient`,
+    dots: `three harmonic breathing dots beneath the text alternating between ${palette.primary} and ${palette.secondary}`,
     none: 'no secondary progress bar or ring—let the logo animation carry the entire screen cleanly',
   };
 
+  const activeMotion =
+    MOTION_STYLES.find((m) => m.id === config.motionStyle) ?? MOTION_STYLES[0];
   const cycleSec = (
     (config.motionStyle === 'ribbon' || config.motionStyle === 'glue' ? 3.5 : 2.6) /
     config.speed
   ).toFixed(2);
   const energyPct = Math.round(config.intensity * 100);
-
-  const motionCommand: Record<LoaderConfig['motionStyle'], string> = {
-    ribbon:
-      config.presetKind === 'ribbon-s'
-        ? `Animate the 3-strand intertwined "S" SVG ribbons (#67E8F9 cyan, #A78BFA violet, #F472B6 pink) inside a #1F1F25 dark tile: hold the full mark briefly, retract the stroke pathLengths down to two symmetric 3-dot clusters, rotate them 360deg smoothly around the center, and draw the strokes back out into the full glowing S-mark over a ${cycleSec}s loop.`
-        : `Choreograph a Ribbon Orbit reveal: contract and spin the logo inward while 2 symmetric clusters of 3 glowing beads (${palette.primary}, #A78BFA, ${palette.secondary}) orbit around the center for half the cycle, then sweep back outward to unveil the crisp logo at 100% scale over a ${cycleSec}s loop.`,
-    glue: `Build a Liquid Glue Spin & Reveal using an SVG metaball goo filter (feGaussianBlur stdDeviation 7.5 + feColorMatrix alpha contrast "1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10"). Rotate a central droplet (${palette.primary}) and 4 satellite blobs (${palette.primary} and ${palette.secondary}) at 360deg while pulling them radially outward and snapping them back together like thick glue. As the blobs fuse at the core, rotate and expand the picture/logo cleanly out of the center (${energyPct}% motion energy) over a ${cycleSec}s loop.`,
-    cardiac: `Apply an organic dual-beat cardiac pulse ("lub-dub" asymmetric scale curve with ${energyPct}% energy) paired with two staggered concentric ripple rings in ${palette.primary} expanding outward and fading cleanly over a ${cycleSec}s loop.`,
-    specular: `Apply a continuous 3D perspective micro-tilt (with interactive pointer magnetic parallax), a diagonal glossy light sheen sweeping across the logo surface, and a thin rotating orbital arc in ${palette.primary} over a ${cycleSec}s loop.`,
-    levitate: `Float the logo smoothly on a sinusoidal vertical drift with a subtle tilt, pair it with an inversely scaling ground blur shadow underneath, and float 5 glowing micro-motes (${palette.primary} & ${palette.secondary}) around it over a ${cycleSec}s loop.`,
-    elastic: `Animate the logo with volume-preserving elastic squash-and-stretch (scaleX/scaleY inverse bounce) and spring overshoot settle (${energyPct}% energy) over a ${cycleSec}s loop.`,
-    aperture: `Create an optical lens focus pull transitioning from a soft 2.5px blur into razor-sharp clarity with subtle zoom, framed by a counter-rotating segmented shutter ring in ${palette.primary} over a ${cycleSec}s loop.`,
-    echo: `Render two translucent, slightly blurred silhouette echo layers behind the logo that breathe outward in staggered harmonic phase while the primary logo pulses gently over a ${cycleSec}s loop.`,
-  };
+  const mixMode = config.auraMixMode ?? 'swirl';
 
   const subjectLine =
     config.presetKind === 'ribbon-s'
@@ -482,23 +452,24 @@ export function generateBuildPrompt(
 
   return `Build an alive, full-screen app loading splash screen for "${config.appName}" in React + Motion (or pure CSS/SVG). Follow these exact specifications:
 
-1. Visual Subject & Framing
+1. Visual Subject, Colors & Mixed Brand Aura
 - ${subjectLine}
-- Place it centered on a ${backdropDesc[config.backdropMode]} background with a soft breathing radial ambient aura using ${palette.glow}.
-- Add a diagonal specular sheen sweep across the logo surface so it feels dimensional and alive.
+- Place it centered on a ${backdropDesc[config.backdropMode]} background.
+- Mix ${palette.primary} and ${palette.secondary} together into one luminous ${mixMode} ambient aura (combining soft white mist highlights with both brand colors) so the background feels multi-dimensional and alive.
+- Add a diagonal specular sheen sweep across the logo surface.
 
-2. Exact Action Choreography
-- ${motionCommand[config.motionStyle]}
-- Support subtle interactive 3D pointer tilt on hover/move, plus a crisp entrance spring (scale 0.76 -> 1, blur 8px -> 0px) when the loader mounts.
+2. Exact Action Choreography (${activeMotion.name})
+- ${activeMotion.summary}. Physics: ${activeMotion.physicsNote}.
+- Run on a ${cycleSec}s continuous loop at ${energyPct}% motion energy, with an entrance spring (scale 0.76 -> 1, blur 8px -> 0px) and subtle magnetic 3D pointer tilt on hover.
 
 3. Typography & Progress State
-- Display the title "${config.appName}" directly below the logo, followed by the status line "${config.loadingPhrase}"${config.showPercentage ? ' with a tabular-nums percentage counter (e.g., "· 68%")' : ''}.
+- Display the title "${config.appName}" (${config.uiTextTheme ?? 'gradient'} typography style) directly below the logo, followed by "${config.loadingPhrase}"${config.showPercentage ? ' with a tabular-nums percentage counter (e.g., "· 68%")' : ''}.
 - Include ${progressDesc[config.progressStyle]}.
-- When loading reaches 100%, change the status text to "Ready", settle the logo with a clean 1.09x -> 1.0 spring pop, and fade out smoothly into the main app.
+- When loading reaches 100%, change status text to "Ready", settle cleanly, and fade smoothly into the app.
 
 4. Performance & Accessibility
-- Animate only GPU-composited properties (transform, opacity, filter, SVG stroke-dashoffset/pathLength).
-- Respect prefers-reduced-motion by disabling continuous loops while keeping the logo and status cleanly visible.`;
+- Animate only GPU-composited properties (transform, opacity, filter, SVG stroke).
+- Respect prefers-reduced-motion by disabling continuous loops while keeping the logo clearly visible.`;
 }
 
 export function generateThemeCssVariables(
@@ -521,9 +492,8 @@ export function generateThemeCssVariables(
   --color-text-muted: ${mutedText};
   --color-primary: ${palette.primary};
   --color-secondary: ${palette.secondary};
+  --color-aura-blend: conic-gradient(from 0deg, ${palette.primary}, ${palette.secondary}, #ffffff);
   --color-glow: ${palette.glow};
   --loader-radius: ${radius};
 }`;
 }
-
-

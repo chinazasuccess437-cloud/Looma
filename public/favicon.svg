@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="looma-bg" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#171A24" />
+      <stop offset="100%" stop-color="#090B10" />
+    </linearGradient>
+    <radialGradient id="looma-aura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.45" />
+      <stop offset="65%" stop-color="#FFFFFF" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#090B10" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="looma-strand-1" x1="36" y1="24" x2="84" y2="96" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="55%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="30" fill="url(#looma-bg)" />
+  <rect x="1.5" y="1.5" width="117" height="117" rx="28.5" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="3" />
+  <circle cx="60" cy="60" r="46" fill="url(#looma-aura)" />
+  <path d="M 75 34 C 75 20, 42 20, 42 38 C 42 54, 78 58, 78 78 C 78 96, 45 96, 45 82" stroke="url(#looma-strand-1)" stroke-width="5.5" stroke-linecap="round" />
+  <path d="M 68 38 C 68 27, 49 27, 49 41 C 49 53, 71 57, 71 75 C 71 89, 52 89, 52 78" stroke="#93C5FD" stroke-width="4.5" stroke-linecap="round" />
+  <path d="M 61 42 C 61 34, 56 34, 56 44 C 56 52, 64 56, 64 72 C 64 82, 59 82, 59 74" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
+</svg>

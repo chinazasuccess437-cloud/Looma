@@ -10,7 +10,7 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #0b0c10;
+    background-color: #090b10;
     color: #f4f4f5;
   }
 
@@ -57,7 +57,51 @@
   }
   50% {
     transform: translate3d(var(--tx, 10px), var(--ty, -18px), 0) scale(1.15);
-    opacity: 0.75;
+    opacity: 0.78;
+  }
+}
+
+@keyframes drift-orb {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(26px, -18px, 0) scale(1.06);
+  }
+  66% {
+    transform: translate3d(-18px, 16px, 0) scale(0.96);
+  }
+}
+
+@keyframes drift-orb-reverse {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(-24px, 18px, 0) scale(0.95);
+  }
+  66% {
+    transform: translate3d(22px, -20px, 0) scale(1.07);
+  }
+}
+
+@keyframes float-surface {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes scan-beam {
+  0%, 100% {
+    transform: translateY(-60%);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateY(150%);
+    opacity: 0.9;
   }
 }
 
@@ -77,11 +121,52 @@
   animation: float-mote var(--mote-duration, 4s) ease-in-out infinite;
 }
 
+.animate-orb {
+  animation: drift-orb 16s ease-in-out infinite;
+}
+
+.animate-orb-reverse {
+  animation: drift-orb-reverse 20s ease-in-out infinite;
+}
+
+.animate-float-surface {
+  animation: float-surface 6s ease-in-out infinite;
+}
+
+.animate-scan-beam {
+  animation: scan-beam var(--scan-duration, 2.4s) ease-in-out infinite;
+}
+
+.looma-dot-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+.looma-floating-card {
+  background: linear-gradient(180deg, rgba(22, 26, 36, 0.88) 0%, rgba(15, 18, 25, 0.92) 100%);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 24px 60px -24px rgba(0, 0, 0, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.25s ease;
+}
+
+.looma-floating-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 28px 64px -22px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-sheen,
   .animate-spin-slow,
   .animate-spin-reverse-slow,
-  .animate-mote {
+  .animate-mote,
+  .animate-orb,
+  .animate-orb-reverse,
+  .animate-float-surface,
+  .animate-scan-beam {
     animation: none !important;
   }
 }

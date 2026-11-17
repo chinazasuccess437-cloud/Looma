@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "Feedback": {
+      "title": "Feedback",
+      "description": "A user rating and written review about Looma persisted in Cloud Firestore.",
+      "type": "object",
+      "properties": {
+        "authorId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the user who submitted the feedback.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Public display name shown on the review card (never an email address).",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "rating": {
+          "type": "integer",
+          "description": "Star rating from 1 to 5."
+        },
+        "category": {
+          "type": "string",
+          "description": "Area of Looma the feedback is about.",
+          "enum": [
+            "Logo Loader",
+            "Custom AI Studio",
+            "States & UI Kit",
+            "Design & Vibe",
+            "Feature Request"
+          ],
+          "maxLength": 32
+        },
+        "comment": {
+          "type": "string",
+          "description": "Written feedback message from the user.",
+          "minLength": 3,
+          "maxLength": 800
+        },
+        "ownerReply": {
+          "type": "string",
+          "description": "Optional reply from Looma's creator/admin.",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the feedback was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the feedback was last updated."
+        }
+      },
+      "required": [
+        "authorId",
+        "authorName",
+        "rating",
+        "category",
+        "comment",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Trusted admin marker document keyed by Firebase Auth UID.",
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["admin"],
+          "maxLength": 16
+        },
+        "grantedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["role", "grantedAt"]
+    }
+  },
+  "firestore": {
+    "/feedback/{feedbackId}": {
+      "schema": {
+        "$ref": "#/entities/Feedback"
+      },
+      "description": "Permanent community star ratings and user feedback for Looma."
+    },
+    "/admins/{adminId}": {
+      "schema": {
+        "$ref": "#/entities/AdminUser"
+      },
+      "description": "Admin role documents for Looma moderation and owner replies."
+    }
+  }
+}

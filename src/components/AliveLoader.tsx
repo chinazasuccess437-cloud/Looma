@@ -52,10 +52,6 @@ export function VectorMonogram({
   );
 }
 
-/**
- * High-craft 3-ribbon intertwined "S" mark inspired by the reference video.
- * Retracts along its curves into 2x3 orbiting glowing beads, rotates, and draws back out.
- */
 export function RibbonSLogo({
   animateAction = false,
   duration = 3.4,
@@ -67,26 +63,24 @@ export function RibbonSLogo({
 }) {
   const glowId = useId();
 
-  // Three parallel intertwined S-ribbons (outer, middle, inner)
   const paths = [
     {
       d: 'M 75 34 C 75 20, 42 20, 42 38 C 42 54, 78 58, 78 78 C 78 96, 45 96, 45 82',
-      stroke: '#67E8F9', // cyan
+      stroke: '#67E8F9',
       delay: 0,
     },
     {
       d: 'M 68 38 C 68 27, 49 27, 49 41 C 49 53, 71 57, 71 75 C 71 89, 52 89, 52 78',
-      stroke: '#A78BFA', // lavender
+      stroke: '#A78BFA',
       delay: 0.03,
     },
     {
       d: 'M 61 42 C 61 34, 56 34, 56 44 C 56 52, 64 56, 64 72 C 64 82, 59 82, 59 74',
-      stroke: '#F472B6', // coral pink
+      stroke: '#F472B6',
       delay: 0.06,
     },
   ];
 
-  // Reverse half-paths so each ribbon leaves a symmetric pair of glowing beads when retracted
   const mirrorPaths = [
     {
       d: 'M 45 82 C 45 96, 78 96, 78 78 C 78 58, 42 54, 42 38 C 42 20, 75 20, 75 34',
@@ -136,7 +130,6 @@ export function RibbonSLogo({
       >
         {animateAction ? (
           <>
-            {/* Primary retracting & drawing S-strands */}
             {paths.map((p, idx) => (
               <motion.path
                 key={`a-${idx}`}
@@ -158,8 +151,6 @@ export function RibbonSLogo({
                 }}
               />
             ))}
-
-            {/* Counter-cluster beads emerging during the orbit phase */}
             {mirrorPaths.map((p, idx) => (
               <motion.path
                 key={`b-${idx}`}
@@ -219,15 +210,15 @@ export function AliveLoader({
   const speed = Math.max(0.4, config.speed);
   const amp = config.intensity;
   const activeMotion = isPlaying && !prefersReduced;
+  const auraMixMode = config.auraMixMode ?? 'swirl';
+  const uiTextTheme = config.uiTextTheme ?? 'gradient';
 
-  // Reset image error when src changes
   const prevSrcRef = useRef(config.imageSrc);
   if (prevSrcRef.current !== config.imageSrc) {
     prevSrcRef.current = config.imageSrc;
     if (imgError) setImgError(false);
   }
 
-  // Magnetic 3D pointer parallax without causing React re-renders
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const smoothX = useSpring(pointerX, { stiffness: 180, damping: 22 });
@@ -255,15 +246,13 @@ export function AliveLoader({
 
   const duration = 2.6 / speed;
   const actionDuration = 3.5 / speed;
-
-  // Is the active visual the bespoke Ribbon S SVG with ribbon choreography?
   const isNativeRibbonS = config.presetKind === 'ribbon-s' && config.motionStyle === 'ribbon';
 
-  // Compute main body animation keyframes per choreography style
   const bodyAnimate = useMemo(() => {
     if (!activeMotion) {
       return {
         scale: 1,
+        x: 0,
         y: 0,
         rotate: 0,
         rotateX: 0,
@@ -277,8 +266,11 @@ export function AliveLoader({
     if (isCompleted) {
       return {
         scale: [1, 1.09, 1],
+        x: 0,
         y: 0,
         rotate: 0,
+        rotateX: 0,
+        rotateY: 0,
         scaleX: 1,
         scaleY: 1,
         opacity: 1,
@@ -289,28 +281,21 @@ export function AliveLoader({
     switch (config.motionStyle) {
       case 'ribbon':
         if (config.presetKind === 'ribbon-s') {
-          // Ribbon S handles its own internal SVG stroke morphing, container subtly breathes
-          return {
-            scale: [1, 1 + 0.025 * amp, 1],
-          };
+          return { scale: [1, 1 + 0.025 * amp, 1] };
         }
-        // For uploaded pictures & other logos: collapse cleanly while orbiting beads spin, then emerge!
         return {
           scale: [1, 0.28, 0.28, 1.04, 1],
           rotate: [0, -85, 95, -4, 0],
           opacity: [1, 0.08, 0.08, 1, 1],
           filter: ['blur(0px)', 'blur(4px)', 'blur(4px)', 'blur(0px)', 'blur(0px)'],
         };
-
       case 'glue':
-        // Viscous liquid-glue spin: picture pulls into the rotating core and stretches/emerges out cleanly
         return {
           scale: [0.36, 1.06, 1, 1, 0.36],
           rotate: [-160 * amp, 8, 0, 0, 140 * amp],
           opacity: [0.1, 1, 1, 1, 0.1],
           filter: ['blur(5px)', 'blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(5px)'],
         };
-
       case 'cardiac':
         return {
           scale: [1, 1 + 0.085 * amp, 0.985, 1 + 0.055 * amp, 1],
@@ -344,8 +329,85 @@ export function AliveLoader({
           scale: [0.97, 1 + 0.04 * amp, 0.97],
           opacity: [0.92, 1, 0.92],
         };
+      case 'pendulum':
+        return {
+          rotate: [-11 * amp, 11 * amp, -11 * amp],
+          x: [-7 * amp, 7 * amp, -7 * amp],
+          y: [0, -4 * amp, 0, -4 * amp, 0],
+        };
+      case 'vortex':
+        return {
+          rotate: [0, 180, 360],
+          scale: [1, 0.84, 1],
+        };
+      case 'origami':
+        return {
+          rotateY: [0, 180, 360],
+          scale: [1, 0.92, 1],
+        };
+      case 'ripple':
+        return {
+          scale: [1, 1 + 0.05 * amp, 1],
+          y: [0, -4 * amp, 0],
+        };
+      case 'neon':
+        return {
+          scale: [1, 1 + 0.035 * amp, 1],
+          filter: [
+            `drop-shadow(0 0 8px ${palette.primary})`,
+            `drop-shadow(0 0 ${Math.round(24 * amp)}px ${palette.secondary})`,
+            `drop-shadow(0 0 8px ${palette.primary})`,
+          ],
+        };
+      case 'prism':
+        return {
+          x: [0, -2 * amp, 2 * amp, 0],
+          scale: [1, 1.02, 0.99, 1],
+        };
+      case 'satellite':
+        return {
+          scale: [1, 1 + 0.03 * amp, 1],
+          rotate: [-1.5, 1.5, -1.5],
+        };
+      case 'gravity':
+        return {
+          y: [-16 * amp, 6 * amp, -6 * amp, 0, -16 * amp],
+          scaleY: [1, 0.88, 1.04, 1, 1],
+          scaleX: [1, 1.1, 0.96, 1, 1],
+        };
+      case 'scanner':
+        return {
+          scale: [1, 1.02, 1],
+          opacity: [0.94, 1, 0.94],
+        };
+      case 'bloom':
+        return {
+          scale: [0.93, 1 + 0.06 * amp, 0.93],
+          rotate: [-2 * amp, 2 * amp, -2 * amp],
+        };
+      case 'compass':
+        return {
+          rotate: [0, 90, 90, 180, 180, 270, 270, 360],
+          scale: [1, 0.96, 1, 0.96, 1, 0.96, 1, 1],
+        };
+      case 'warp':
+        return {
+          scale: [0.58, 1.05, 1, 0.58],
+          opacity: [0.22, 1, 1, 0.22],
+          filter: ['blur(4px)', 'blur(0px)', 'blur(0px)', 'blur(4px)'],
+        };
+      case 'halo':
+        return {
+          scale: [1, 1 + 0.035 * amp, 1],
+        };
+      case 'drift':
+        return {
+          rotateX: [-7 * amp, 7 * amp, -7 * amp],
+          rotateY: [7 * amp, -7 * amp, 7 * amp],
+          y: [-5 * amp, 5 * amp, -5 * amp],
+        };
     }
-  }, [activeMotion, isCompleted, config.motionStyle, config.presetKind, amp]);
+  }, [activeMotion, isCompleted, config.motionStyle, config.presetKind, amp, palette.primary, palette.secondary]);
 
   const bodyTransition = useMemo(() => {
     if (isCompleted) {
@@ -390,6 +452,34 @@ export function AliveLoader({
           repeat: Infinity,
           ease: 'easeInOut' as const,
         };
+      case 'vortex':
+      case 'origami':
+        return {
+          duration: actionDuration * 0.9,
+          repeat: Infinity,
+          ease: [0.45, 0, 0.55, 1] as const,
+        };
+      case 'compass':
+        return {
+          duration: actionDuration * 1.25,
+          times: [0, 0.15, 0.25, 0.4, 0.5, 0.65, 0.75, 1],
+          repeat: Infinity,
+          ease: [0.34, 1.56, 0.64, 1] as const,
+        };
+      case 'gravity':
+        return {
+          duration: duration * 0.9,
+          times: [0, 0.35, 0.6, 0.82, 1],
+          repeat: Infinity,
+          ease: 'easeInOut' as const,
+        };
+      case 'warp':
+        return {
+          duration: actionDuration,
+          times: [0, 0.4, 0.72, 1],
+          repeat: Infinity,
+          ease: [0.22, 1, 0.36, 1] as const,
+        };
       default:
         return {
           duration,
@@ -399,13 +489,11 @@ export function AliveLoader({
     }
   }, [config.motionStyle, config.presetKind, duration, actionDuration, isCompleted]);
 
-  // Orbital progress ring geometry
   const ringRadius = (dims.ring - dims.stroke * 2) / 2;
   const ringCircumference = 2 * Math.PI * ringRadius;
   const clampedProgress = Math.max(0, Math.min(100, progress));
   const strokeDashoffset = ringCircumference * (1 - clampedProgress / 100);
 
-  // Floating particles for Levitation
   const motes = useMemo(
     () => [
       { x: -64, y: -42, tx: '-10px', ty: '-22px', delay: '0s', size: 5 },
@@ -456,6 +544,46 @@ export function AliveLoader({
     );
   };
 
+  // Mixed Multi-Color Aura gradient computation (e.g. White + Blue mixed together in one field)
+  const mixedAuraStyle = useMemo(() => {
+    if (auraMixMode === 'swirl') {
+      return {
+        background: `conic-gradient(from 0deg, ${palette.primary}66, ${palette.secondary}88, #ffffff55, ${palette.primary}66)`,
+      };
+    }
+    if (auraMixMode === 'mist') {
+      return {
+        background: `radial-gradient(circle at 32% 32%, ${palette.primary}88 0%, transparent 56%), radial-gradient(circle at 68% 68%, ${palette.secondary}88 0%, transparent 60%), radial-gradient(circle, rgba(255,255,255,0.22) 0%, transparent 72%)`,
+      };
+    }
+    return {
+      background: `radial-gradient(circle at 38% 38%, ${palette.primary}77 0%, ${palette.secondary}55 45%, transparent 74%)`,
+    };
+  }, [auraMixMode, palette.primary, palette.secondary]);
+
+  const titleClassName = useMemo(() => {
+    const baseSize = size === 'sm' ? 'text-sm' : size === 'md' ? 'text-base' : 'text-xl';
+    if (uiTextTheme === 'editorial') {
+      return `${baseSize} font-serif italic tracking-normal font-semibold ${primaryTextClass}`;
+    }
+    if (uiTextTheme === 'mono') {
+      return `${baseSize} font-mono uppercase tracking-[0.14em] font-medium ${primaryTextClass}`;
+    }
+    if (uiTextTheme === 'clean') {
+      return `${baseSize} font-display tracking-tight font-semibold ${primaryTextClass}`;
+    }
+    return `${baseSize} font-display tracking-tight font-bold bg-clip-text text-transparent`;
+  }, [size, uiTextTheme, primaryTextClass]);
+
+  const titleInlineStyle =
+    uiTextTheme === 'gradient'
+      ? {
+          backgroundImage: isLightBackdrop
+            ? `linear-gradient(120deg, #0f172a 15%, ${palette.secondary} 90%)`
+            : `linear-gradient(120deg, #ffffff 20%, ${palette.primary} 65%, ${palette.secondary} 100%)`,
+        }
+      : undefined;
+
   return (
     <div
       ref={containerRef}
@@ -464,7 +592,6 @@ export function AliveLoader({
       className="flex flex-col items-center justify-center select-none"
       style={{ perspective: 900 }}
     >
-      {/* Hidden SVG Metaball Goo Filter for Liquid Glue Choreography */}
       <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
         <defs>
           <filter id={gooFilterId}>
@@ -495,28 +622,29 @@ export function AliveLoader({
         }}
         className="relative grid place-items-center"
       >
-        {/* 1. Ambient Adaptive Aura */}
+        {/* 1. Mixed Multi-Color Ambient Aura */}
         <motion.div
           aria-hidden="true"
           animate={
             activeMotion
               ? {
-                  scale: [0.92, 1.18 + 0.08 * amp, 0.92],
-                  opacity: [0.28, 0.62, 0.28],
+                  scale: [0.94, 1.2 + 0.08 * amp, 0.94],
+                  rotate: auraMixMode === 'swirl' ? [0, 360] : [0, 12, 0],
+                  opacity: [0.35, 0.72, 0.35],
                 }
-              : { scale: 1, opacity: 0.35 }
+              : { scale: 1, opacity: 0.4 }
           }
-          transition={{ duration: duration * 1.1, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: duration * 1.4, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute rounded-full pointer-events-none"
           style={{
-            width: dims.box * 1.45,
-            height: dims.box * 1.45,
-            background: `radial-gradient(circle, ${palette.glow} 0%, transparent 70%)`,
-            filter: 'blur(22px)',
+            width: dims.box * 1.52,
+            height: dims.box * 1.52,
+            ...mixedAuraStyle,
+            filter: 'blur(24px)',
           }}
         />
 
-        {/* 2. Liquid Glue Metaball Layer ("rotate like glue and bring out the logo picture") */}
+        {/* 2. Liquid Glue Metaball Layer */}
         {config.motionStyle === 'glue' && activeMotion && !isCompleted && (
           <motion.div
             aria-hidden="true"
@@ -529,11 +657,8 @@ export function AliveLoader({
               ease: [0.55, 0.05, 0.45, 0.95],
             }}
           >
-            {/* Central glue nucleus */}
             <motion.div
-              animate={{
-                scale: [0.68, 1.15, 0.92, 0.68],
-              }}
+              animate={{ scale: [0.68, 1.15, 0.92, 0.68] }}
               transition={{
                 duration: actionDuration,
                 times: [0, 0.36, 0.72, 1],
@@ -547,8 +672,6 @@ export function AliveLoader({
                 backgroundColor: palette.primary,
               }}
             />
-
-            {/* Orbiting sticky glue droplets that pull out and snap back into the core */}
             {[0, 90, 180, 270].map((angle, i) => {
               const rad = (angle * Math.PI) / 180;
               const dist = dims.box * 0.56 * amp;
@@ -581,7 +704,7 @@ export function AliveLoader({
           </motion.div>
         )}
 
-        {/* 3. Ribbon Orbit Layer for Custom Pictures & Logos (matching video's orbiting 2x3 glowing beads) */}
+        {/* 3. Ribbon Orbit Layer */}
         {config.motionStyle === 'ribbon' && !isNativeRibbonS && activeMotion && !isCompleted && (
           <motion.div
             aria-hidden="true"
@@ -598,14 +721,11 @@ export function AliveLoader({
               ease: [0.65, 0, 0.35, 1],
             }}
           >
-            {/* Two symmetric clusters of 3 glowing beads */}
             {[-1, 1].map((dir) => (
               <div
                 key={dir}
                 className="absolute flex items-center gap-1.5"
-                style={{
-                  transform: `translateY(${dir * dims.box * 0.28}px)`,
-                }}
+                style={{ transform: `translateY(${dir * dims.box * 0.28}px)` }}
               >
                 {[palette.primary, '#A78BFA', palette.secondary].map((dotColor, idx) => (
                   <span
@@ -624,73 +744,168 @@ export function AliveLoader({
           </motion.div>
         )}
 
-        {/* 4. Cardiac Acoustic Ripple Waves */}
-        {config.motionStyle === 'cardiac' && activeMotion && !isCompleted && (
-          <>
-            {[0, 1].map((idx) => (
-              <motion.div
-                key={idx}
-                aria-hidden="true"
-                initial={{ scale: 0.85, opacity: 0.55 }}
-                animate={{ scale: 1.55 + 0.15 * amp, opacity: 0 }}
-                transition={{
-                  duration: duration * 0.95,
-                  repeat: Infinity,
-                  delay: idx * (duration * 0.24),
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="absolute pointer-events-none"
+        {/* 4. Cardiac & Sonar Ripple Waves */}
+        {(config.motionStyle === 'cardiac' || config.motionStyle === 'ripple') &&
+          activeMotion &&
+          !isCompleted && (
+            <>
+              {(config.motionStyle === 'ripple' ? [0, 1, 2] : [0, 1]).map((idx) => (
+                <motion.div
+                  key={idx}
+                  aria-hidden="true"
+                  initial={{ scale: 0.85, opacity: 0.6 }}
+                  animate={{ scale: 1.6 + 0.18 * amp, opacity: 0 }}
+                  transition={{
+                    duration: duration * (config.motionStyle === 'ripple' ? 1.25 : 0.95),
+                    repeat: Infinity,
+                    delay: idx * (duration * 0.28),
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="absolute pointer-events-none"
+                  style={{
+                    width: dims.box,
+                    height: dims.box,
+                    borderRadius:
+                      config.motionStyle === 'ripple'
+                        ? '9999px'
+                        : radius === '0px'
+                          ? '9999px'
+                          : radius,
+                    border: `1.5px solid ${idx % 2 === 0 ? palette.primary : palette.secondary}`,
+                  }}
+                />
+              ))}
+            </>
+          )}
+
+        {/* 5. Chromatic Echo & Prism Split Silhouettes */}
+        {(config.motionStyle === 'echo' || config.motionStyle === 'prism') &&
+          activeMotion &&
+          !isCompleted && (
+            <>
+              {[0, 1].map((layer) => (
+                <motion.div
+                  key={layer}
+                  aria-hidden="true"
+                  animate={
+                    config.motionStyle === 'prism'
+                      ? {
+                          x: layer === 0 ? [-7 * amp, 3 * amp, 0, -7 * amp] : [7 * amp, -3 * amp, 0, 7 * amp],
+                          y: layer === 0 ? [-2 * amp, 2 * amp, 0, -2 * amp] : [2 * amp, -2 * amp, 0, 2 * amp],
+                          opacity: [0.45, 0.22, 0.08, 0.45],
+                        }
+                      : {
+                          scale: [1, 1.18 + layer * 0.14 * amp, 1],
+                          opacity: [0.34 - layer * 0.12, 0.06, 0.34 - layer * 0.12],
+                        }
+                  }
+                  transition={{
+                    duration: duration * 1.1,
+                    repeat: Infinity,
+                    delay: layer * 0.18,
+                    ease: 'easeInOut',
+                  }}
+                  className="absolute overflow-hidden pointer-events-none"
+                  style={{
+                    width: dims.box,
+                    height: dims.box,
+                    borderRadius: radius,
+                    filter: config.motionStyle === 'prism' ? 'blur(1px)' : 'blur(2px)',
+                    boxShadow:
+                      config.motionStyle === 'prism'
+                        ? `0 0 0 2px ${layer === 0 ? palette.primary : palette.secondary}`
+                        : undefined,
+                  }}
+                >
+                  {renderMediaContent()}
+                </motion.div>
+              ))}
+            </>
+          )}
+
+        {/* 6. Petal Bloom & Halo Crown Rings */}
+        {config.motionStyle === 'bloom' && activeMotion && !isCompleted && (
+          <motion.div
+            aria-hidden="true"
+            animate={{ rotate: [0, 90], scale: [0.85, 1.14 * amp, 0.85] }}
+            transition={{ duration: duration * 1.3, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute inset-0 grid place-items-center pointer-events-none"
+          >
+            {[0, 45, 90, 135].map((deg, idx) => (
+              <div
+                key={deg}
+                className="absolute rounded-3xl"
                 style={{
-                  width: dims.box,
-                  height: dims.box,
-                  borderRadius: radius === '0px' ? '9999px' : radius,
-                  border: `1.5px solid ${palette.primary}`,
+                  width: dims.box * 1.18,
+                  height: dims.box * 1.18,
+                  transform: `rotate(${deg}deg)`,
+                  border: `1.5px solid ${idx % 2 === 0 ? palette.primary : palette.secondary}`,
+                  opacity: 0.35,
                 }}
               />
             ))}
-          </>
+          </motion.div>
         )}
 
-        {/* 5. Chromatic Echo Silhouette Layers */}
-        {config.motionStyle === 'echo' && activeMotion && !isCompleted && (
-          <>
-            {[0, 1].map((layer) => (
-              <motion.div
-                key={layer}
-                aria-hidden="true"
-                animate={{
-                  scale: [1, 1.18 + layer * 0.14 * amp, 1],
-                  opacity: [0.34 - layer * 0.12, 0.06, 0.34 - layer * 0.12],
-                }}
-                transition={{
-                  duration: duration * 1.2,
-                  repeat: Infinity,
-                  delay: layer * 0.22,
-                  ease: 'easeInOut',
-                }}
-                className="absolute overflow-hidden pointer-events-none"
-                style={{
-                  width: dims.box,
-                  height: dims.box,
-                  borderRadius: radius,
-                  filter: 'blur(2px)',
-                }}
-              >
-                {renderMediaContent()}
-              </motion.div>
-            ))}
-          </>
+        {config.motionStyle === 'halo' && activeMotion && !isCompleted && (
+          <motion.div
+            aria-hidden="true"
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 2.2 / speed, repeat: Infinity, ease: 'linear' }}
+            className="absolute rounded-full pointer-events-none"
+            style={{
+              width: dims.box + 22,
+              height: dims.box + 22,
+              padding: 3,
+              background: `conic-gradient(from 0deg, ${palette.primary}, ${palette.secondary}, transparent 65%, ${palette.primary})`,
+              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'xor',
+              maskComposite: 'exclude',
+            }}
+          />
         )}
 
-        {/* 6. Aperture Rotating Shutter / Specular Orbital Frame */}
-        {(config.motionStyle === 'aperture' || config.motionStyle === 'specular') && (
+        {/* 7. Satellite Lock Orbiting Moons */}
+        {config.motionStyle === 'satellite' && activeMotion && !isCompleted && (
+          <motion.div
+            aria-hidden="true"
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 2.6 / speed, repeat: Infinity, ease: 'linear' }}
+            className="absolute pointer-events-none"
+            style={{ width: dims.ring + 16, height: dims.ring + 16 }}
+          >
+            <span
+              className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full"
+              style={{
+                width: size === 'sm' ? 7 : 10,
+                height: size === 'sm' ? 7 : 10,
+                backgroundColor: palette.primary,
+                boxShadow: `0 0 14px ${palette.primary}`,
+              }}
+            />
+            <span
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full"
+              style={{
+                width: size === 'sm' ? 6 : 8,
+                height: size === 'sm' ? 6 : 8,
+                backgroundColor: palette.secondary,
+                boxShadow: `0 0 14px ${palette.secondary}`,
+              }}
+            />
+          </motion.div>
+        )}
+
+        {/* 8. Aperture / Specular / Vortex Rings */}
+        {(config.motionStyle === 'aperture' ||
+          config.motionStyle === 'specular' ||
+          config.motionStyle === 'vortex') && (
           <svg
             aria-hidden="true"
             width={dims.ring + 18}
             height={dims.ring + 18}
             viewBox="0 0 180 180"
             className={`absolute pointer-events-none ${activeMotion ? 'animate-spin-slow' : ''}`}
-            style={{ ['--orbit-duration' as string]: `${(10 / speed).toFixed(1)}s` }}
+            style={{ ['--orbit-duration' as string]: `${(config.motionStyle === 'vortex' ? 4.2 / speed : 10 / speed).toFixed(1)}s` }}
           >
             <circle
               cx="90"
@@ -698,37 +913,36 @@ export function AliveLoader({
               r="82"
               fill="none"
               stroke={palette.primary}
-              strokeOpacity={config.motionStyle === 'aperture' ? 0.55 : 0.35}
+              strokeOpacity={config.motionStyle === 'specular' ? 0.35 : 0.6}
               strokeWidth="1.5"
-              strokeDasharray={config.motionStyle === 'aperture' ? '14 10 4 10' : '42 28'}
+              strokeDasharray={config.motionStyle === 'vortex' ? '26 12 8 12' : config.motionStyle === 'aperture' ? '14 10 4 10' : '42 28'}
               strokeLinecap="round"
             />
-            {config.motionStyle === 'aperture' && (
+            {(config.motionStyle === 'aperture' || config.motionStyle === 'vortex') && (
               <circle
                 cx="90"
                 cy="90"
-                r="73"
+                r="72"
                 fill="none"
                 stroke={palette.secondary}
-                strokeOpacity="0.28"
-                strokeWidth="1"
-                strokeDasharray="6 14"
+                strokeOpacity="0.4"
+                strokeWidth="1.2"
+                strokeDasharray="8 12"
               />
             )}
           </svg>
         )}
 
-        {/* 7. Zero-G Levitation Floor Shadow & Floating Light Motes */}
-        {config.motionStyle === 'levitate' && (
+        {/* 9. Levitate / Gravity Floor Shadow & Floating Light Motes */}
+        {(config.motionStyle === 'levitate' ||
+          config.motionStyle === 'gravity' ||
+          config.motionStyle === 'drift') && (
           <>
             <motion.div
               aria-hidden="true"
               animate={
                 activeMotion
-                  ? {
-                      scaleX: [1, 0.72, 1],
-                      opacity: [0.42, 0.18, 0.42],
-                    }
+                  ? { scaleX: [1, 0.7, 1], opacity: [0.45, 0.18, 0.45] }
                   : { scaleX: 0.9, opacity: 0.3 }
               }
               transition={{ duration, repeat: Infinity, ease: 'easeInOut' }}
@@ -742,6 +956,7 @@ export function AliveLoader({
               }}
             />
             {activeMotion &&
+              (config.motionStyle === 'levitate' || config.motionStyle === 'drift') &&
               motes.map((m, i) => (
                 <span
                   key={i}
@@ -764,7 +979,7 @@ export function AliveLoader({
           </>
         )}
 
-        {/* 8. Orbital Progress Ring */}
+        {/* 10. Orbital Progress Ring */}
         {config.progressStyle === 'ring' && (
           <svg
             width={dims.ring}
@@ -796,7 +1011,7 @@ export function AliveLoader({
           </svg>
         )}
 
-        {/* 9. Core Living Picture / Logo Container */}
+        {/* 11. Core Living Picture / Logo Container */}
         <motion.div
           animate={bodyAnimate}
           transition={bodyTransition}
@@ -806,14 +1021,28 @@ export function AliveLoader({
             height: dims.box,
             borderRadius: radius,
             boxShadow:
-              config.maskShape === 'freeform'
-                ? `0 18px 40px -12px ${palette.glow}`
-                : isLightBackdrop
-                  ? '0 20px 44px -14px rgba(15, 23, 42, 0.24), 0 0 0 1px rgba(15, 23, 42, 0.08)'
-                  : '0 24px 48px -14px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12)',
+              config.motionStyle === 'neon'
+                ? `0 0 28px -4px ${palette.primary}, 0 0 0 1.5px ${palette.secondary}`
+                : config.maskShape === 'freeform'
+                  ? `0 18px 40px -12px ${palette.glow}`
+                  : isLightBackdrop
+                    ? '0 20px 44px -14px rgba(15, 23, 42, 0.24), 0 0 0 1px rgba(15, 23, 42, 0.08)'
+                    : '0 24px 48px -14px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.14)',
           }}
         >
           {renderMediaContent()}
+
+          {/* Laser Scan Beam */}
+          {config.motionStyle === 'scanner' && activeMotion && !isCompleted && (
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-0 h-1/3 pointer-events-none animate-scan-beam"
+              style={{
+                ['--scan-duration' as string]: `${(2.2 / speed).toFixed(2)}s`,
+                background: `linear-gradient(180deg, transparent 0%, ${palette.primary}88 50%, ${palette.secondary}CC 52%, transparent 100%)`,
+              }}
+            />
+          )}
 
           {/* Diagonal Specular Sheen Overlay */}
           {activeMotion && !isNativeRibbonS && (
@@ -824,33 +1053,28 @@ export function AliveLoader({
                 ['--sheen-duration' as string]: `${(3.1 / speed).toFixed(2)}s`,
                 background:
                   config.motionStyle === 'specular'
-                    ? 'linear-gradient(105deg, transparent 25%, rgba(255,255,255,0.38) 48%, transparent 72%)'
+                    ? 'linear-gradient(105deg, transparent 25%, rgba(255,255,255,0.42) 48%, transparent 72%)'
                     : 'linear-gradient(105deg, transparent 34%, rgba(255,255,255,0.16) 50%, transparent 66%)',
               }}
             />
           )}
 
-          {/* Subtle Inner Edge Highlight */}
           {config.maskShape !== 'freeform' && (
             <div
               aria-hidden="true"
               className="absolute inset-0 pointer-events-none"
               style={{
                 borderRadius: radius,
-                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.22)',
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.24)',
               }}
             />
           )}
         </motion.div>
       </motion.div>
 
-      {/* 10. App Identity, Loading Copy & Non-Ring Progress Indicators */}
+      {/* 12. App Identity, Loading Copy & Progress */}
       <div className={`${size === 'sm' ? 'mt-3' : 'mt-6'} flex flex-col items-center text-center max-w-xs px-4`}>
-        <h3
-          className={`font-display font-semibold tracking-tight ${
-            size === 'sm' ? 'text-sm' : size === 'md' ? 'text-base' : 'text-lg'
-          } ${primaryTextClass}`}
-        >
+        <h3 className={titleClassName} style={titleInlineStyle}>
           {config.appName || 'App Name'}
         </h3>
 
@@ -864,7 +1088,6 @@ export function AliveLoader({
           )}
         </div>
 
-        {/* Fluid Linear Progress Bar */}
         {config.progressStyle === 'bar' && (
           <div
             className={`mt-4 h-1.5 rounded-full overflow-hidden ${
@@ -873,21 +1096,30 @@ export function AliveLoader({
           >
             <motion.div
               className="h-full rounded-full"
-              style={{ backgroundColor: isCompleted ? '#22C55E' : palette.primary }}
+              style={{
+                background: isCompleted
+                  ? '#22C55E'
+                  : `linear-gradient(90deg, ${palette.primary}, ${palette.secondary})`,
+              }}
               animate={{ width: `${clampedProgress}%` }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
             />
           </div>
         )}
 
-        {/* Harmonic Breathing Dots */}
         {config.progressStyle === 'dots' && (
           <div className="mt-4 flex items-center gap-2" aria-hidden="true">
             {[0, 1, 2].map((dot) => (
               <motion.span
                 key={dot}
                 className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: isCompleted ? '#22C55E' : palette.primary }}
+                style={{
+                  backgroundColor: isCompleted
+                    ? '#22C55E'
+                    : dot % 2 === 0
+                      ? palette.primary
+                      : palette.secondary,
+                }}
                 animate={
                   activeMotion && !isCompleted
                     ? {

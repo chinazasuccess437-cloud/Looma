@@ -21,18 +21,16 @@ interface PreviewProps {
   templateId: string;
   config: LoaderConfig;
   palette: ExtractedPalette;
-  onLaunchSplash?: () => void;
 }
 
 export function TemplatePreview({
   templateId,
   config,
   palette,
-  onLaunchSplash,
 }: PreviewProps) {
   switch (templateId) {
     case 'splash-screen':
-      return <SplashPreview config={config} palette={palette} onLaunchSplash={onLaunchSplash} />;
+      return <SplashPreview config={config} palette={palette} />;
     case 'skeleton-shimmer':
       return <SkeletonPreview />;
     case 'classic-spinners':
@@ -118,11 +116,9 @@ function ActiveLogoMini({
 function SplashPreview({
   config,
   palette,
-  onLaunchSplash,
 }: {
   config: LoaderConfig;
   palette: ExtractedPalette;
-  onLaunchSplash?: () => void;
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3">
@@ -143,15 +139,7 @@ function SplashPreview({
       </div>
       <div className="text-center">
         <p className="text-xs font-semibold text-zinc-100">{config.appName}</p>
-        {onLaunchSplash && (
-          <button
-            type="button"
-            onClick={onLaunchSplash}
-            className="mt-1.5 text-[11px] text-blue-400 hover:text-blue-300 underline cursor-pointer"
-          >
-            Preview Fullscreen
-          </button>
-        )}
+        <p className="mt-0.5 text-[11px] text-zinc-400">Welcome to {config.appName}</p>
       </div>
     </div>
   );

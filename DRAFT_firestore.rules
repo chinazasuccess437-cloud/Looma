@@ -1,0 +1,162 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == 'chinazajoseph952@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidFeedbackCategory(category) {
+      return category is string &&
+        category.size() <= 32 &&
+        category in [
+          'Logo Loader',
+          'Custom AI Studio',
+          'States & UI Kit',
+          'Design & Vibe',
+          'Feature Request'
+        ];
+    }
+
+    function isValidFeedbackBase(data) {
+      return data.keys().hasAll([
+          'authorId',
+          'authorName',
+          'rating',
+          'category',
+          'comment',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'authorId',
+          'authorName',
+          'rating',
+          'category',
+          'comment',
+          'ownerReply',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.authorId) &&
+        data.authorName is string &&
+        data.authorName.size() >= 1 &&
+        data.authorName.size() <= 40 &&
+        data.rating is int &&
+        data.rating >= 1 &&
+        data.rating <= 5 &&
+        isValidFeedbackCategory(data.category) &&
+        data.comment is string &&
+        data.comment.size() >= 3 &&
+        data.comment.size() <= 800 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp &&
+        (!('ownerReply' in data) || (
+          data.ownerReply is string &&
+          data.ownerReply.size() >= 1 &&
+          data.ownerReply.size() <= 500
+        ));
+    }
+
+    function isValidFeedbackCreate(data) {
+      return isValidFeedbackBase(data) &&
+        !('ownerReply' in data) &&
+        data.authorId == request.auth.uid &&
+        data.createdAt == request.time &&
+        data.updatedAt == request.time;
+    }
+
+    function isValidFeedbackUpdate(data) {
+      return isValidFeedbackBase(data) &&
+        data.updatedAt == request.time;
+    }
+
+    // Community feedback & ratings (no PII stored; author identity verified on all writes)
+    match /feedback/{feedbackId} {
+      allow get: if isValidId(feedbackId) &&
+        existing().rating is int &&
+        existing().rating >= 1 &&
+        existing().rating <= 5;
+
+      allow list: if request.query.limit != null && request.query.limit <= 50;
+
+      allow create: if isVerifiedUser() &&
+        isValidId(feedbackId) &&
+        isValidFeedbackCreate(incoming());
+
+      allow update: if isVerifiedUser() &&
+        isValidId(feedbackId) &&
+        isValidFeedbackUpdate(incoming()) &&
+        incoming().authorId == existing().authorId &&
+        incoming().createdAt == existing().createdAt &&
+        (
+          (
+            existing().authorId == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'authorName',
+              'rating',
+              'category',
+              'comment',
+              'updatedAt'
+            ])
+          ) ||
+          (
+            isAdmin() &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'ownerReply',
+              'updatedAt'
+            ])
+          )
+        );
+
+      allow delete: if isVerifiedUser() &&
+        isValidId(feedbackId) &&
+        (existing().authorId == request.auth.uid || isAdmin());
+    }
+
+    // Trusted admin marker documents (server-managed only)
+    match /admins/{adminId} {
+      allow get: if isVerifiedUser() &&
+        isValidId(adminId) &&
+        (
+          request.auth.uid == adminId ||
+          request.auth.token.email == 'chinazajoseph952@gmail.com'
+        );
+      allow list, create, update, delete: if false;
+    }
+
+    // Connectivity check endpoint used by startup testConnection()
+    match /test/{docId} {
+      allow get: if docId == 'connection';
+      allow list, write: if false;
+    }
+  }
+}
