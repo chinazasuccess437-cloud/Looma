@@ -1,0 +1,87 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-sans: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #0b0c10;
+    color: #f4f4f5;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+@keyframes sheen-sweep {
+  0% {
+    transform: translateX(-140%) skewX(-22deg);
+  }
+  45%, 100% {
+    transform: translateX(220%) skewX(-22deg);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-reverse-slow {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes float-mote {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(0.8);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translate3d(var(--tx, 10px), var(--ty, -18px), 0) scale(1.15);
+    opacity: 0.75;
+  }
+}
+
+.animate-sheen {
+  animation: sheen-sweep var(--sheen-duration, 3.2s) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow var(--orbit-duration, 9s) linear infinite;
+}
+
+.animate-spin-reverse-slow {
+  animation: spin-reverse-slow var(--orbit-duration, 14s) linear infinite;
+}
+
+.animate-mote {
+  animation: float-mote var(--mote-duration, 4s) ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheen,
+  .animate-spin-slow,
+  .animate-spin-reverse-slow,
+  .animate-mote {
+    animation: none !important;
+  }
+}

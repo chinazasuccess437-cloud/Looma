@@ -1,0 +1,6 @@
+{
+  "name": "Looma — Alive Logo Loader Studio",
+  "description": "Craft living, organic app loading screens and splash animations from any picture or logo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
