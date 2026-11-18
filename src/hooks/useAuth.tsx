@@ -51,7 +51,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Google sign-in was cancelled.';
       if (!msg.includes('popup-closed-by-user') && !msg.includes('cancelled-popup-request')) {
-        setAuthError(msg);
+        if (msg.includes('auth/unauthorized-domain')) {
+          const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+          setAuthError(
+            `Google Sign-In is not authorized on "${host}" yet. Add "${host}" in Firebase Console → Authentication → Settings → Authorized domains.`
+          );
+        } else {
+          setAuthError(msg);
+        }
       }
       return null;
     } finally {
@@ -184,6 +191,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Surface sign-in errors (e.g. auth/unauthorized-domain) when triggered directly from header */}
+      <AnimatePresence>
+        {authError && !gateReason && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            className="fixed bottom-5 left-5 right-5 sm:left-auto sm:max-w-md z-50 rounded-2xl border border-rose-500/40 bg-[#181217] px-4 py-3 text-xs text-rose-200 shadow-2xl flex items-start justify-between gap-3"
+          >
+            <span className="leading-relaxed">{authError}</span>
+            <button
+              type="button"
+              onClick={() => setAuthError(null)}
+              aria-label="Dismiss sign-in error"
+              className="p-1 rounded-lg text-rose-300 hover:text-white hover:bg-rose-500/20 shrink-0 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
     </AuthContext.Provider>

@@ -1,4 +1,4 @@
-import { generateCustomUiDesign, type CustomDesignRequest } from '../../server/aiDesign';
+import { generateCustomUiDesign, type CustomDesignRequest } from '../../server/aiDesign.js';
 
 interface VercelReq {
   method?: string;
